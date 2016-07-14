@@ -2,7 +2,7 @@
 
 Readme date: 29.5.2012
 Contributors: lukapusic
-Author: Luka Pusic <luka@pusic.si>
+Author: Luka Pusic <luka@pusic.com>
 
 ## Description
 Facebook status update bot updates your Facebook status without any APIs, just with PHP's curl extension.

@@ -1,8 +1,7 @@
-### Facebook PHP curl bot
+### Facebook PHP curl bot to post happy birthday
 
-Readme date: 29.5.2012
 Contributors: lukapusic
-Author: Luka Pusic <luka@pusic.com>
+Original Author: Luka Pusic <luka@pusic.com>
 
 ## Description
 Facebook status update bot updates your Facebook status without any APIs, just with PHP's curl extension.
@@ -21,4 +20,4 @@ Facebook status update bot updates your Facebook status without any APIs, just w
 * Full code rework, more functions, easier to extend the script.
 
 ## Known issues
-* 
+* not working!

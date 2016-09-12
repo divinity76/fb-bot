@@ -22,13 +22,24 @@ $cookies = 'cookies.txt';
 touch($cookies);
 $device_name = 'Home'; #in case you have location checking turned on
 $debug       = true;
+
+function return_var_dump(/*...*/){
+    $args=func_get_args();
+    ob_start();
+    call_user_func_array('var_dump',$args);
+    return ob_get_clean();
+}
+
 /*
  * @return form input field names & values
  */
 function parse_inputs($html)
 {
     $dom = new DOMDocument;
-    @$dom->loadxml($html);
+    libxml_clear_errors();
+    if(!@$dom->loadxml($html)){
+        throw new RuntimeException('failed to parse input. errors: '.return_var_dump(libxml_get_errors()));
+    }
     $inputs = $dom->getElementsByTagName('input');
     return ($inputs);
 }
@@ -38,7 +49,10 @@ function parse_inputs($html)
 function parse_action($html)
 {
     $dom = new DOMDocument;
-    @$dom->loadxml($html);
+    libxml_clear_errors();
+    if(!@$dom->loadxml($html)){
+        throw new RuntimeException('failed to parse input. errors: '.return_var_dump(libxml_get_errors()));
+    }
     $form_action = $dom->getElementsByTagName('form')->item(0)->getAttribute('action');
     if (!strpos($form_action, "//")) {
         $form_action = "https://m.facebook.com$form_action";
@@ -198,7 +212,10 @@ function update($msg)
 function logout()
 {
     $dom = new DOMDocument;
-    @$dom->loadxml(grab_home());
+    libxml_clear_errors();
+    if(!@$dom->loadxml(grab_home())){
+        throw new RuntimeException('failed to parse input. errors: '.return_var_dump(libxml_get_errors()));
+    }
     $links = $dom->getElementsByTagName('a');
     foreach ($links as $link) {
         if (strpos($link->getAttribute('href'), 'logout.php')) {

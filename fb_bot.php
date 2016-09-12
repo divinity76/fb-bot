@@ -1,5 +1,4 @@
 <?php
-
 /**
  * PHP Curl status update script
  * @since Sep 2010
@@ -9,50 +8,51 @@
 /*
  * Required parameters
  */
-$status = 'Your status.';
-$email = 'your@email.com';
-$pass = 'your_password';
+require_once 'simple_html_dom.php';
+
+$email            = 'ganganimaulik';
+$pass             = 'password';
+$birthday_message = "Happy birthday :)";
+
 /*
  * Optional parameters
  */
-$uagent = 'Mozilla/4.0 (compatible; MSIE 5.0; S60/3.0 NokiaN73-1/2.0(2.0617.0.0.7) Profile/MIDP-2.0 Configuration/CLDC-1.1)';
+$uagent  = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.3) Gecko/20070309 Firefox/2.0.0.3';
 $cookies = 'cookies.txt';
 touch($cookies);
 $device_name = 'Home'; #in case you have location checking turned on
-$debug = false;
-
+$debug       = true;
 /*
  * @return form input field names & values
  */
-
-function parse_inputs($html) {
+function parse_inputs($html)
+{
     $dom = new DOMDocument;
     @$dom->loadxml($html);
     $inputs = $dom->getElementsByTagName('input');
-    return($inputs);
+    return ($inputs);
 }
-
 /*
  * @return form action url
  */
-
-function parse_action($html) {
+function parse_action($html)
+{
     $dom = new DOMDocument;
     @$dom->loadxml($html);
     $form_action = $dom->getElementsByTagName('form')->item(0)->getAttribute('action');
     if (!strpos($form_action, "//")) {
         $form_action = "https://m.facebook.com$form_action";
     }
-    return($form_action);
+    return ($form_action);
 }
-
-function login() {
+function login()
+{
     /*
      * Grab login page and parameters
      */
-    $loginpage = grab_home();
+    $loginpage   = grab_home();
     $form_action = parse_action($loginpage);
-    $inputs = parse_inputs($loginpage);
+    $inputs      = parse_inputs($loginpage);
     $post_params = "";
     foreach ($inputs as $input) {
         switch ($input->getAttribute('name')) {
@@ -86,73 +86,13 @@ function login() {
         echo $loggedin;
     }
     curl_close($ch);
-    /*
-     * Check if location checking is turned on or you have to verify location
-     */
-    if (strpos($loggedin, "machine_name") || strpos($loggedin, "/checkpoint/") || strpos($loggedin, "submit[Continue]")) {
-        echo "\n[i] Found a checkpoint...\n";
-        checkpoint($loggedin);
-        echo "\n[i] Checkpoints passed...\n";
-    }
+
 }
-
-/*
- * pass checkpoints
- */
-
-function checkpoint($html) {
-    $form_action = parse_action($html);
-    $inputs = parse_inputs($html);
-    $post_params = "";
-    foreach ($inputs as $input) {
-        switch ($input->getAttribute('name')) {
-            case "":
-                break;
-            case "submit[I don't recognize]":
-                break;
-            case "submit[Don't Save]":
-                break;
-            case "machine_name":
-                $post_params .= 'machine_name=' . urlencode($GLOBALS['device_name']) . '&';
-                break;
-            default:
-                $post_params .= $input->getAttribute('name') . '=' . urlencode($input->getAttribute('value')) . '&';
-        }
-    }
-    if ($GLOBALS['debug']) {
-        echo "\nCheckpoint form action: $form_action\n";
-        echo "\nCheckpoint post params: $post_params\n";
-    }
-    //Verify the machine
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_COOKIEJAR, $GLOBALS['cookies']);
-    curl_setopt($ch, CURLOPT_COOKIEFILE, $GLOBALS['cookies']);
-    curl_setopt($ch, CURLOPT_USERAGENT, $GLOBALS['uagent']);
-    curl_setopt($ch, CURLOPT_URL, $form_action);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-    curl_setopt($ch, CURLOPT_POST, 1);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $post_params);
-    $home = curl_exec($ch);
-    if ($GLOBALS['debug']) {
-        echo "This is fucking shit: -- $home --";
-    }
-    curl_close($ch);
-
-    if (strpos($home, "machine_name") || strpos($home, "/checkpoint/") || strpos($home, "submit[Continue]")) {
-        echo "\n[i] Solving another checkpoint...\n";
-        checkpoint($home);
-    }
-}
-
 /*
  * grab and return the homepage
  */
-
-function grab_home() {
-
+function grab_home()
+{
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_COOKIEJAR, $GLOBALS['cookies']);
     curl_setopt($ch, CURLOPT_COOKIEFILE, $GLOBALS['cookies']);
@@ -167,50 +107,96 @@ function grab_home() {
         echo $html;
     }
     curl_close($ch);
-    return($html);
+    return ($html);
 }
-
 /*
- * update facebook status
+ * grab and return the birthday page
  */
-
-function update($status) {
-    $html = grab_home();
-
-    $form_action = parse_action($html);
-    $inputs = parse_inputs($html);
-    $post_params = "status=$status&";
-    foreach ($inputs as $input) {
-        $post_params .= $input->getAttribute('name') . '=' . urlencode($input->getAttribute('value')) . '&';
-    }
-
-
-    if ($GLOBALS['debug']) {
-        echo "\nStatus update form action: $form_action\n";
-        echo "\nStatus update params: $post_params\n";
-    }
-    /*
-     * post the update
-     */
+function grab_birthday()
+{
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_COOKIEJAR, $GLOBALS['cookies']);
     curl_setopt($ch, CURLOPT_COOKIEFILE, $GLOBALS['cookies']);
     curl_setopt($ch, CURLOPT_USERAGENT, $GLOBALS['uagent']);
-    curl_setopt($ch, CURLOPT_URL, $form_action);
+    curl_setopt($ch, CURLOPT_URL, 'https://m.facebook.com/browse/birthdays/');
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
     curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-    curl_setopt($ch, CURLOPT_POST, 1);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $post_params);
-    $updated = curl_exec($ch);
+    $html = curl_exec($ch);
     if ($GLOBALS['debug']) {
-        echo $updated;
+        echo $html;
     }
     curl_close($ch);
+    return ($html);
 }
+/*
+ * update facebook status
+ */
+function update($msg)
+{
+    $html = grab_birthday();
 
-function logout() {
+    $html = str_get_html($html);
+
+    $privacy_lock = 0;
+    $success      = 0;
+
+    //this loop will process each friend having birthday today.
+    foreach ($html->find('#root .bi .bj') as $element) {
+        $inputs = array();
+        if ($element->find('form')[0]) {
+            //echo $element->find('form')[0];
+            foreach ($element->find('input') as $input) {
+                //echo "\niiiii: ". ($input->name);
+                $inputs[$input->name] = urlencode($input->value);
+            }
+            $inputs['message'] = urlencode($msg);
+            $form_action       = 'http://m.facebook.com' . $element->find('form')[0]->action;
+            print_r($inputs);
+            echo $url;
+            echo "\n\n";
+
+            //url-ify the data for the POST
+            $post_params = '';
+            foreach ($inputs as $key => $value) {$post_params .= $key . '=' . $value . '&';}
+            rtrim($post_params, '&');
+
+            if ($GLOBALS['debug']) {
+                echo "\nBirthday post form action: $form_action\n";
+                echo "\nBirthday post params: $post_params\n";
+            }
+
+            /*
+             * post the message
+             */
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_COOKIEJAR, $GLOBALS['cookies']);
+            curl_setopt($ch, CURLOPT_COOKIEFILE, $GLOBALS['cookies']);
+            curl_setopt($ch, CURLOPT_USERAGENT, $GLOBALS['uagent']);
+            curl_setopt($ch, CURLOPT_URL, $form_action);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+            curl_setopt($ch, CURLOPT_POST, 1);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $post_params);
+            $updated = curl_exec($ch);
+            if ($GLOBALS['debug']) {
+                echo $updated;
+            }
+            curl_close($ch);
+            $success++;
+        } else {
+            $privacy_lock++;
+        }
+    }
+    echo "\n\n\n\n";
+    echo $privacy_lock . " people have disabled wall-post.\n";
+    echo $success . " friends have been wished.\n";
+}
+function logout()
+{
     $dom = new DOMDocument;
     @$dom->loadxml(grab_home());
     $links = $dom->getElementsByTagName('a');
@@ -220,7 +206,6 @@ function logout() {
             break;
         }
     }
-
     $url = 'https://m.facebook.com' . $logout;
     /*
      * just logout lol
@@ -242,9 +227,7 @@ function logout() {
     curl_close($ch);
     echo "\n[i] Logged out.\n";
 }
-
 login();
-update($GLOBALS['status']);
+update($birthday_message);
 logout();
 unlink($cookies);
-?>

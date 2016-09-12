@@ -38,7 +38,7 @@ function parse_inputs($html)
     $dom = new DOMDocument;
     libxml_clear_errors();
     if(!@$dom->loadxml($html)){
-        throw new RuntimeException('failed to parse input. errors: '.return_var_dump(libxml_get_errors()));
+        throw new RuntimeException('failed to parse xml. errors: '.return_var_dump(libxml_get_errors()));
     }
     $inputs = $dom->getElementsByTagName('input');
     return ($inputs);
@@ -51,7 +51,7 @@ function parse_action($html)
     $dom = new DOMDocument;
     libxml_clear_errors();
     if(!@$dom->loadxml($html)){
-        throw new RuntimeException('failed to parse input. errors: '.return_var_dump(libxml_get_errors()));
+        throw new RuntimeException('failed to parse xml. errors: '.return_var_dump(libxml_get_errors()));
     }
     $form_action = $dom->getElementsByTagName('form')->item(0)->getAttribute('action');
     if (!strpos($form_action, "//")) {
@@ -214,7 +214,7 @@ function logout()
     $dom = new DOMDocument;
     libxml_clear_errors();
     if(!@$dom->loadxml(grab_home())){
-        throw new RuntimeException('failed to parse input. errors: '.return_var_dump(libxml_get_errors()));
+        throw new RuntimeException('failed to parse grab_home() xml. errors: '.return_var_dump(libxml_get_errors()));
     }
     $links = $dom->getElementsByTagName('a');
     foreach ($links as $link) {
